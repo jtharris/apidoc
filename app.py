@@ -1,29 +1,41 @@
 import os
-from flask  import Flask, render_template
-from parser import SwaggerParser
-from os import listdir
-from os.path import isfile, join
+from flask import Flask, render_template
+from mongoengine import connect, Document, StringField, DictField, URLField
 
 app = Flask(__name__)
 
-SPEC_PATH = "static/specs"
+# TODO:  Get connection info from env
+connect('specs')
 
-def spec_exists(spec):
-     return isfile(join(SPEC_PATH, spec))
 
-def load_specs():
-     return [f.replace('.yaml','') for f in listdir(SPEC_PATH) if spec_exists(f)]
+class AppSpec(Document):
+    app_name = StringField(required=True, unique=True)
+    source = URLField(required=True)
+    spec = DictField(required=True)
 
-@app.route("/docs/<name>")
+# TODO:  Is there a better place to initialize this?
+AppSpec.create_index('app_name', background=True)
+
+
+@app.route('/docs/<name>')
 def spec(name):
-     parser = SwaggerParser("static/specs/%s.yaml" % name)
-     return render_template('spec.html', spec = parser.spec, paths = parser.paths())
+    # TODO:  Handle 404s
+    spec = AppSpec.objects.get(app_name=name)
+    return render_template('spec.html', spec=spec)
 
-@app.route("/")
+
+@app.route('/new')
+def new():
+    return render_template('new.html')
+
+
+@app.route('/')
 def index():
-    return render_template('intro.html', specs=load_specs())
+    # TODO:  Paginate
+    specs = AppSpec.objects.only('app_name').all()
+    return render_template('intro.html', specs=specs)
 
-PORT = int(os.getenv('PORT', '5000'))
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=PORT)
+    # Dev mode
+    app.run(host='0.0.0.0', port=5000)

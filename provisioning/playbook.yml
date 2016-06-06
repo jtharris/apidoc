@@ -1,0 +1,49 @@
+---
+- hosts: all
+  tasks:
+    - name: Set up apt repos
+      apt_repository: repo='{{ item }}' state=present
+      with_items:
+        - deb http://archive.ubuntu.com/ubuntu trusty main
+        - deb http://archive.ubuntu.com/ubuntu trusty-security main
+        - deb http://archive.ubuntu.com/ubuntu trusty-updates main
+        - deb http://archive.ubuntu.com/ubuntu trusty universe
+
+    - name: Upgrade the OS
+      apt: upgrade=yes update_cache=yes
+
+    - name: Install extra packages
+      apt: name={{ item }} state=latest
+      with_items:
+        - postgresql-server-dev-9.3
+        - postgresql
+        - python
+        - python-dev
+        - python3-dev
+        - python3-pip
+        - mongodb
+
+    - name: Remove Python 2 virtualenv
+      apt: name=python-virtualenv state=absent
+
+    - name: Install latest pip
+      pip: executable=pip3 name=pip state=latest
+
+    - name: Install Python 3 virtualenv
+      pip: executable=pip3 name=virtualenv state=latest
+
+    - name: Install Python 3 Paver
+      pip: executable=pip3 name=Paver state=latest
+
+    - name: Set up Docs virtual env
+      pip: executable=pip3 requirements=/vagrant/requirements.txt virtualenv=/home/vagrant/docs-venv virtualenv_python=python3
+      become_user: vagrant
+
+    - name: Set up initial ssh env
+      lineinfile: dest=/home/vagrant/.bashrc line='source ~/docs-venv/bin/activate; cd /vagrant/'
+
+    - name: Ensure en_US locale exists
+      locale_gen: name=en_US.UTF-8 state=present
+
+    - name: Exporting LC_ALL to en_US
+      lineinfile: dest=/home/vagrant/.bashrc line='export LC_ALL="en_US.UTF-8"'

@@ -1,0 +1,3914 @@
+swagger: '2.0'
+info:
+  title: BAPI
+  description: BILLING API
+  version: "1.0.0"
+host: billing.wpengine.io
+consumes:
+  - application/json
+produces:
+  - application/json
+basePath: /v1
+paths:
+  /accounts/:
+    get:
+      summary: Account list
+      description: Returns all the accounts of the system
+      operationId: listAccounts
+      tags:
+        - Accounts
+      parameters:
+        - name: plan_name
+          in: query
+          type: string
+          required: false
+          description: "Return accounts which have active subscriptions with the specified plan name (e.g. 'Premium')"
+      responses:
+        200:
+          description: The result is an array of Accounts
+          schema:
+            $ref: "#/definitions/AccountListModel"
+    post:
+      summary: Create account
+      description: Create a new account in the system
+      tags:
+        - Accounts
+      operationId: addAccount
+      parameters:
+        - name: account
+          in: body
+          required: true
+          description: Account to add to the system
+          schema:
+            $ref: "#/definitions/AccountCreateModel"
+      responses:
+        201:
+          description: Account response
+          schema:
+            $ref: "#/definitions/AccountModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /accounts/{account_id}:
+    get:
+      summary: Get account
+      description: Returns an account based on a single ID
+      operationId: findAccountbyID
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of account to fetch
+          type: integer
+      responses:
+        200:
+          description: Account response
+          schema:
+            $ref: "#/definitions/AccountModel"
+    put:
+      summary: Update Account
+      description: Update an account based on a single ID using put method
+      operationId: updateAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: ID of account to update
+          type: integer
+        - name: account
+          in: body
+          required: true
+          description: Account to add to the system
+          schema:
+            $ref: "#/definitions/AccountUpdateModel"
+      responses:
+        200:
+          description: Account updated
+          schema:
+            $ref: "#/definitions/AccountModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Update account
+      description: Update an account based on a single ID using patch method
+      operationId: patchAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: ID of account to update
+          type: integer
+        - name: account
+          required: true
+          in: body
+          description: Account to add to the system
+          schema:
+            $ref: "#/definitions/AccountUpdateModel"
+      responses:
+        200:
+          description: Account updated
+          schema:
+            $ref: "#/definitions/AccountModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /accounts/{account_id}/subscriptions/:
+    get:
+      summary: Get subscription
+      description: Returns the subscriptions of a specific account
+      operationId: findSubscriptionsbyAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of account to fetch subscriptions
+          type: integer
+        - name: active
+          required: false
+          in: query
+          description: Used to filter actives and inactives subscriptions associated to an specific account
+          type: boolean
+        - name: expand
+          required: false
+          in: "query"
+          description: "Expand is an optional parameter. It returns the full plan object upon request. Example: \"/accounts/id/subscriptions/?expand[]=plan\""
+          type: string
+      responses:
+        200:
+          description: Subscriptions of a specific account
+          schema:
+            $ref: "#/definitions/SubscriptionListModel"
+  /accounts/{account_id}/invoices/:
+    get:
+      summary: Get invoices
+      description: Returns the list of invoices associated with an specific account
+      operationId: findInvoicesbyAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of account to fetch invoices
+          type: integer
+        - name: open
+          required: false
+          in: query
+          description: Limit to only open or closed invoices
+          type: boolean
+        - name: expand
+          required: false
+          in: "query"
+          description: "Optional parameter for expanding refunds. Example: \"/accounts/:id/invoices/?expand[]=refunds\""
+          type: string
+      responses:
+        200:
+          description: Invoices of an specific account
+          schema:
+            $ref: "#/definitions/InvoiceListWithInvoiceItemsModel"
+  /accounts/{account_id}/refunds/:
+    get:
+      summary: Get refunds
+      description: Returns the list of refunds associated with an specific account
+      operationId: findRefundsbyAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of account to fetch refunds
+          type: integer
+        - name: reconciled
+          required: false
+          in: query
+          description: Limit to only reconciled or unreconciled refunds
+          type: boolean
+      responses:
+        200:
+          description: Refunds of an specific account
+          schema:
+            $ref: "#/definitions/RefundListModel"
+  /accounts/{account_id}/usage-events/:
+    get:
+      summary: Get usage events
+      description: Returns the list of usage events associated with the active subscription of the account
+      operationId: findUsageEventsbyAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of account to fetch usage events
+          type: integer
+      responses:
+        200:
+          description: Usage events associated with the active subscription of an specific account
+          schema:
+            $ref: "#/definitions/UsageEventListModel"
+  /accounts/{account_id}/syncs/:
+    post:
+      summary: Sync an account to NetSuite
+      description: Create a new synchronization request for a specific account
+      operationId: syncAccount
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of the account to sync
+          type: integer
+      responses:
+        200:
+          description: The account was synchonized successfully
+  /accounts/{account_id}/contacts/{contact_id}:
+    get:
+      summary: Get contact
+      description: Returns a contact on an account
+      operationId: findAccountContactById
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          required: true
+          in: path
+          description: ID of account
+          type: integer
+        - name: contact_id
+          required: true
+          in: path
+          description: ID of account contact to fetch
+          type: integer
+      responses:
+        200:
+          description: Contact response
+          schema:
+            $ref: "#/definitions/ContactModel"
+    put:
+      summary: Update Contact on an Account
+      description: Update a contact based on a single ID using put method
+      operationId: updateAccountContact
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: ID of account to update
+          type: integer
+        - name: contact_id
+          required: true
+          in: path
+          description: ID of account contact to fetch
+          type: integer
+        - name: contact
+          required: true
+          in: body
+          description: Contact to update in the system
+          schema:
+            $ref: "#/definitions/ContactModel"
+      responses:
+        200:
+          description: Contact updated
+          schema:
+            $ref: "#/definitions/ContactModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Patch Contact on an Account
+      description: Update a contact based on a single ID using patch method
+      operationId: patchAccountContact
+      tags:
+        - Accounts
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: ID of account
+          type: integer
+        - name: contact_id
+          required: true
+          in: path
+          description: ID of account contact to update
+          type: integer
+        - name: contact
+          required: true
+          in: body
+          description: Contact to update in the system
+          schema:
+            $ref: "#/definitions/ContactModel"
+      responses:
+        200:
+          description: Contact updated
+          schema:
+            $ref: "#/definitions/ContactModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    delete:
+      summary: Delete a contact
+      description: Deletes the contact
+      tags:
+        - Contact
+      operationId: deleteContact
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: ID of account
+          type: integer
+        - name: contact_id
+          required: true
+          in: path
+          description: ID of account contact to update
+          type: integer
+      responses:
+        204:
+          description: Successfully deleted the contact
+          produces:
+            - None
+        404:
+          description: Contact not found.
+        403:
+          description: Cannot remove last remaining contact from an account.
+  /addons/:
+    get:
+      summary: Addons list
+      description: Return all the addons of the system
+      tags:
+        - Addons
+      operationId: listAddons
+      responses:
+        200:
+          description: The result is an array of Addons
+          schema:
+            $ref: "#/definitions/AddonListModel"
+    post:
+      summary: Create addons
+      description: Create a new addon in the system
+      tags:
+        - Addons
+      operationId: addAddon
+      parameters:
+        - name: addon
+          in: body
+          required: true
+          description: Addon to add to the system
+          schema:
+            $ref: "#/definitions/AddonCreateModel"
+      responses:
+        201:
+          description: Addon response
+          schema:
+            $ref: "#/definitions/AddonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /addons/{id}:
+    get:
+      summary: Get Addon
+      description: Returns an addon based on a single ID
+      operationId: findAddonbyID
+      tags:
+        - Addons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of addon to fetch
+          type: string
+      responses:
+        200:
+          description: Addon response
+          schema:
+            $ref: "#/definitions/AddonModel"
+    put:
+      summary: Update Addon
+      description: Update an addon based on a single ID using put method
+      operationId: updateAddon
+      tags:
+        - Addons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of addon to update
+          type: string
+        - name: addon
+          in: body
+          required: true
+          description: Addon to add to the system
+          schema:
+            $ref: "#/definitions/AddonUpdateModel"
+      responses:
+        200:
+          description: Addon updated
+          schema:
+            $ref: "#/definitions/AddonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Update Addon
+      description: Update an addon based on a single ID using patch method
+      operationId: patchAddon
+      tags:
+        - Addons
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of addon to update
+          type: string
+        - name: addon
+          in: body
+          required: true
+          description: Addon to add to the system
+          schema:
+            $ref: "#/definitions/AddonPatchModel"
+      responses:
+        200:
+          description: Addon updated
+          schema:
+            $ref: "#/definitions/AddonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /adjustment-reasons/:
+    get:
+      summary: Adjustment reason list
+      description: Returns all the adjustment reasons of the system
+      tags:
+        - Adjustment Reasons
+      operationId: listAdjustmentReasons
+      responses:
+        200:
+          description: The result is an array of Adjustment Reasons
+          schema:
+            $ref: "#/definitions/AdjustmentReasonListModel"
+    post:
+      summary: Create adjustment reason
+      description: Create a new adjustment reason in the system
+      tags:
+        - Adjustment Reasons
+      operationId: addAdjustmentReason
+      parameters:
+        - name: adjustmentReason
+          in: body
+          required: true
+          description: Adjustment Reason to add to the system
+          schema:
+            $ref: "#/definitions/AdjustmentReasonCreateModel"
+      responses:
+        201:
+          description: Adjustment Reasons response
+          schema:
+            $ref: "#/definitions/AdjustmentReasonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /adjustment-reasons/{adjustment_reason_id}:
+    get:
+      summary: Get Adjustment Reason
+      description: Returns a adjustment reason based on a single ID
+      operationId: findAdjustmentReasonbyID
+      tags:
+        - Adjustment Reasons
+      parameters:
+        - name: adjustment_reason_id
+          in: path
+          required: true
+          description: ID of adjustment reason to fetch
+          type: string
+      responses:
+        200:
+          description: Adjustment reasons response
+          schema:
+            $ref: "#/definitions/AdjustmentReasonModel"
+    put:
+      summary: Update Adjustment Reason
+      description: Update an adjustment reason based on a single ID using put method
+      operationId: updateAdjustmentReason
+      tags:
+        - Adjustment Reasons
+      parameters:
+        - name: adjustment_reason_id
+          in: path
+          required: true
+          description: ID of adjustment reason to update
+          type: string
+        - name: adjustment_reason
+          in: body
+          required: true
+          description: Adjustment Reason to add to the system
+          schema:
+            $ref: "#/definitions/AdjustmentReasonUpdateModel"
+      responses:
+        200:
+          description: Adjustment Reason updated
+          schema:
+            $ref: "#/definitions/AdjustmentReasonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Update Adjustment Reason
+      description: Update an adjustment reason based on a single ID using patch method
+      operationId: patchAdjustmentReason
+      tags:
+        - Adjustment Reasons
+      parameters:
+        - name: adjustment_reason_id
+          in: path
+          required: true
+          description: ID of adjustment reason to update
+          type: string
+        - name: adjustment_reason
+          required: true
+          in: body
+          description: Adjustment Reason to add to the system
+          schema:
+            $ref: "#/definitions/AdjustmentReasonPatchModel"
+      responses:
+        200:
+          description: Adjustment Reason updated
+          schema:
+            $ref: "#/definitions/AdjustmentReasonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /coupons/:
+    get:
+      summary: Coupon list
+      description: Returns all the coupons of the system
+      tags:
+        - Coupons
+      operationId: listCoupons
+      responses:
+        200:
+          description: The result is an array of Coupons
+          schema:
+            $ref: "#/definitions/CouponListModel"
+    post:
+      summary: Create coupon
+      description: Create a new coupon in the system
+      tags:
+        - Coupons
+      operationId: addCoupon
+      parameters:
+        - name: coupon
+          in: body
+          required: true
+          description: Coupon to add to the system
+          schema:
+            $ref: "#/definitions/CouponCreateModel"
+      responses:
+        201:
+          description: Coupon response
+          schema:
+            $ref: "#/definitions/CouponModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /coupons/{coupon_id}:
+    get:
+      summary: Get Coupon
+      description: Returns a coupon based on a single ID
+      operationId: findCouponbyID
+      tags:
+        - Coupons
+      parameters:
+        - name: coupon_id
+          in: path
+          required: true
+          description: ID of coupon to fetch
+          type: string
+      responses:
+        200:
+          description: Coupon response
+          schema:
+            $ref: "#/definitions/CouponModel"
+  /coupons/{coupon_id}/valid_plans/{plan_id}:
+    get:
+      summary: Validate coupon for a plan
+      description: Coupon validation for a specific plan
+      operationId: validateCoupon
+      tags:
+        - Coupons
+      parameters:
+        - name: coupon_id
+          in: path
+          required: true
+          description: ID of the coupon
+          type: string
+        - name: plan_id
+          in: path
+          required: true
+          description: ID of the plan
+          type: string
+      responses:
+        200:
+          description: The coupon is valid for the plan
+          schema:
+            $ref: "#/definitions/CouponModel"
+        400:
+          description: The coupon is not valid for the plan
+  /credits/:
+    post:
+      summary: Create credit
+      description:  Create a new credit in the system
+      tags:
+        - Credits
+      operationId: addCredit
+      parameters:
+        - name: credit
+          in: body
+          required: true
+          description: Credit to add to the system
+          schema:
+            $ref: "#/definitions/CreditCreateModel"
+      responses:
+        201:
+          description: Credit response
+          schema:
+            $ref: "#/definitions/CreditModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /debits/:
+    post:
+      summary: Create debit
+      description: Create a new debit in the system
+      tags:
+        - Debits
+      operationId: addDebit
+      parameters:
+        - name: debit
+          in: body
+          required: true
+          description: Debit to add to the system
+          schema:
+            $ref: "#/definitions/DebitModel"
+      responses:
+        201:
+          description: Debit response
+          schema:
+            $ref: "#/definitions/DebitModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /invoices/:
+    get:
+      summary: Invoices list
+      description: Returns all the invoices of the system
+      tags:
+        - Invoices
+      operationId: listInvoices
+      parameters:
+        - name: expand
+          in: query
+          required: false
+          description: >
+            Expand is an optional parameter. It returns complete failed payment objects upon request.
+            It should be used like this "/v1/invoices/?expand[]=failed_payments"
+          type: string
+      responses:
+        200:
+          description: It is an array of Invoices
+          schema:
+            $ref: "#/definitions/InvoiceListModel"
+  /invoices/{invoice_id}:
+    get:
+      summary: Invoice
+      description: Returns a single invoice of the system
+      tags:
+        - Invoices
+      operationId: findInvoicebyID
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          description: ID of invoice to fetch
+          type: integer
+        - name: expand
+          in: query
+          required: false
+          description: >
+            Expand is an optional parameter. It returns complete credit, payment, and failed payment objects upon request.
+            It should be used like this "/v1/invoices/invoice_id/?expand[]=credits&expand[]=payments&expand[]=failed_payments"
+          type: string
+      responses:
+        200:
+          description: It is a single Invoice
+          schema:
+            $ref: "#/definitions/InvoiceModel"
+  /invoices/{invoice_id}/payments/:
+    get:
+      summary: Invoice Payments
+      description: Returns all payments of a given Invoice
+      tags:
+        - Payments
+      operationId: listInvoicePayments
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          description: ID of invoice to fetch
+          type: string
+      responses:
+        200:
+          description: It is an array of Payments
+          schema:
+            $ref: "#/definitions/PaymentListModel"
+  /invoices/{invoice_id}/bad-debt/:
+    post:
+      summary: Bad Debt
+      description: Write an open invoice off as bad debt
+      tags:
+        - Invoices
+      operationId: issueBadDebt
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          description: ID of the invoice to write off
+          type: string
+      responses:
+        201:
+          description: Credit issued that represents the bad debt
+          schema:
+            $ref: "#/definitions/CreditModel"
+  /metered-products/:
+    get:
+      summary: Metered products list
+      description: Return all the metered products of the system
+      tags:
+        - Metered Products
+      operationId: listMeteredProducts
+      responses:
+        200:
+          description: The result is an array of Metered Products
+          schema:
+            $ref: "#/definitions/MeteredProductListModel"
+    post:
+      summary: Create a metered product
+      description: Create a new metered product in the system
+      tags:
+        - Metered Products
+      operationId: addMeteredProduct
+      parameters:
+        - name: meteredProduct
+          in: body
+          required: true
+          description: Metered Product to add to the system
+          schema:
+            $ref: "#/definitions/MeteredProductCreateModel"
+      responses:
+        201:
+          description: Metered Product response
+          schema:
+            $ref: "#/definitions/MeteredProductModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /metered-products/{metered_product_id}:
+    get:
+      summary: Get Metered Product
+      description: Returns a metered product based on a single ID
+      operationId: findMeteredProduct
+      tags:
+        - Metered Products
+      parameters:
+        - name: metered_product_id
+          in: path
+          required: true
+          description: ID of metered product to fetch
+          type: string
+      responses:
+        200:
+          description: Metered Product response
+          schema:
+            $ref: "#/definitions/MeteredProductModel"
+    put:
+      summary: Update a metered product
+      description: Update an existing metered product using Put method
+      operationId: updateMeteredProduct
+      tags:
+        - Metered Products
+      parameters:
+        - name: metered_product_id
+          in: path
+          required: true
+          description: ID of metered product to update
+          type: string
+        - name: MeteredProduct
+          in: body
+          required: true
+          description: Metered Product to add to the system
+          schema:
+            $ref: "#/definitions/MeteredProductUpdateModel"
+      responses:
+        200:
+          description: Metered product updated
+          schema:
+            $ref: "#/definitions/MeteredProductModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Update a metered product
+      description: Update an existing metered product using Patch method
+      operationId: updateMeteredProduct
+      tags:
+        - Metered Products
+      parameters:
+        - name: metered_product_id
+          in: path
+          required: true
+          description: ID of metered product to update
+          type: string
+        - name: MeteredProduct
+          in: body
+          required: true
+          description: Metered Product to add to the system
+          schema:
+            $ref: "#/definitions/MeteredProductUpdateModel"
+      responses:
+        200:
+          description: Metered product updated
+          schema:
+            $ref: "#/definitions/MeteredProductModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /migration-issues/:
+    get:
+      summary: Migration Issue list
+      description: Return all migration issues (abnormalities in migration runs)
+      tags:
+        - Migrations
+      operationId: listMigrationIssues
+      responses:
+        200:
+          description: The result is an array of Migration Issues
+          schema:
+            $ref: "#/definitions/MigrationIssueListModel"
+  /migrations/:
+    get:
+      summary: Migrations list
+      description: Return all migrations (open and closed)
+      tags:
+        - Migrations
+      operationId: listMigrations
+      responses:
+        200:
+          description: The result is an array of Migrations
+          schema:
+            $ref: "#/definitions/MigrationListModel"
+    post:
+      summary: Submit a new Migration
+      description: A new migration process is started
+      tags:
+        - Migrations
+      operationId: addMigration
+      parameters:
+        - name: migration
+          in: body
+          required: true
+          description: Migration to begin
+          schema:
+            $ref: "#/definitions/MigrationCreateModel"
+      responses:
+        202:
+          description: Migration response
+          schema:
+            $ref: "#/definitions/MigrationModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /migrations/{migration_id}:
+    get:
+      summary: Get Migration
+      description: Returns a migration by ID
+      operationId: findMigration
+      tags:
+        - Migrations
+      parameters:
+        - name: migration_id
+          in: path
+          required: true
+          description: ID of the migration to fetch - this is the same as the account ID
+          type: integer
+      responses:
+        200:
+          description: Migration response
+          schema:
+            $ref: "#/definitions/MigrationModel"
+  /migrations/{migration_id}/imports:
+    post:
+      summary: Submit a new Import of an existing Migration
+      description: This retries all of the import tasks for a given migration
+      tags:
+        - Migrations
+      operationId: retryMigration
+      parameters:
+        - name: migration_id
+          in: path
+          required: true
+          description: ID of the Migration to retry
+          type: integer
+      responses:
+        202:
+          description: Migration response
+          schema:
+            $ref: "#/definitions/MigrationModel"
+        404:
+          description: Migration not found
+  /one-time-items/:
+    get:
+      summary: OneTimeItem list
+      description: Returns all the one time items of the system
+      tags:
+        - One Time Items
+      operationId: findOneTimeItem
+      responses:
+        200:
+          description: The result is an array of OneTimeItems
+          schema:
+            $ref: "#/definitions/OneTimeItemListModel"
+    post:
+      summary: Create one time item
+      description: Create a new one time item in the system
+      tags:
+        - One Time Items
+      operationId: addOneTimeItem
+      parameters:
+        - name: one_time_item
+          in: body
+          required: true
+          description: OneTimeItem to add to the system
+          schema:
+            $ref: "#/definitions/OneTimeItemCreateModel"
+      responses:
+        201:
+          description: OneTimeItem response
+          schema:
+            $ref: "#/definitions/OneTimeItemModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /one-time-items/{one_time_item_id}:
+    get:
+      summary: Get One Time Item
+      description: Returns a one time item based on a single ID
+      operationId: findOneTimeItembyID
+      tags:
+        - One Time Items
+      parameters:
+        - name: one_time_item_id
+          in: path
+          required: true
+          description: ID of one time item to fetch
+          type: string
+      responses:
+        200:
+          description: OneTimeItem response
+          schema:
+            $ref: "#/definitions/OneTimeItemModel"
+    put:
+      summary: Update One Time Item
+      description: Updates a one time item based on the ID
+      operationId: updateOneTimeItem
+      tags:
+        - One Time Items
+      parameters:
+        - name: one_time_item_id
+          in: path
+          required: true
+          description: ID of one time item to update
+          type: string
+        - name: one_time_item
+          in: body
+          required: true
+          description: OneTimeItem to add to the system
+          schema:
+            $ref: "#/definitions/OneTimeItemUpdateModel"
+      responses:
+        200:
+          description: OneTimeItem updated
+          schema:
+            $ref: "#/definitions/OneTimeItemModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Update One Time Item
+      description: Updates a one time item based on the ID
+      operationId: patchOneTimeItem
+      tags:
+        - One Time Items
+      parameters:
+        - name: one_time_item_id
+          in: path
+          required: true
+          description: ID of the one time item to update
+          type: string
+        - name: one_time_item
+          in: body
+          description: OneTimeItem to add to the system
+          schema:
+            $ref: "#/definitions/OneTimeItemUpdateModel"
+      responses:
+        200:
+          description: OneTimeItem updated
+          schema:
+            $ref: "#/definitions/OneTimeItemModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /payments/:
+    post:
+      summary: Create a payment
+      description: "Create a new payment in the system. This end-point supports three different payment schemas.
+      Credit card payments require invoice and stripe_charge_id, the cc_brand and cc_last4 are going to be populated from stripe.
+      Wire transfers payments require invoice, wire_number, bank_fee and amount.
+      Check payments require invoice and check_number."
+      tags:
+        - Payments
+      operationId: addPayment
+      parameters:
+        - name: payment
+          in: body
+          required: true
+          description: Payment to add to the system
+          schema:
+            $ref: "#/definitions/PaymentModel"
+      responses:
+        201:
+          description: Payment response
+          schema:
+            $ref: "#/definitions/PaymentGetModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /payments/{payment_id}:
+    get:
+      summary: Get Payment
+      description: "Returns a payment based on a single ID. This end-point supports three different payment schemas.
+      Credit card payments require invoice, the cc_brand and cc_last4 are going to be populated from stripe. Wire transfers payments require invoice, wire_number, bank_fee and amount.
+      Check payments require invoice and check_number."
+      operationId: findPaymentbyID
+      tags:
+        - Payments
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          description: ID of payment to fetch
+          type: integer
+      responses:
+        200:
+          description: Payment response
+          schema:
+            $ref: "#/definitions/PaymentGetModel"
+  /payments/{payment_id}/refunds/:
+    get:
+      summary: Payment Refunds
+      description: Returns all refunds of a given payment
+      tags:
+        - Refunds
+      operationId: listPaymentRefunds
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          description: ID of payment to fetch
+          type: integer
+      responses:
+        200:
+          description: It is an array of Refunds
+          schema:
+            $ref: "#/definitions/RefundListModel"
+  /plans/:
+    get:
+      summary: Plans list
+      description: Returns all the plans of the system
+      tags:
+        - Plans
+      operationId: listPlans
+      responses:
+        200:
+          description: The result is an array of Plans
+          schema:
+            $ref: "#/definitions/PlanListModel"
+    post:
+      summary: Create plan
+      description: Create a new plan in the system
+      tags:
+        - Plans
+      operationId: addPlan
+      parameters:
+        - name: plan
+          in: body
+          required: true
+          description: Plan to add to the system
+          schema:
+            $ref: "#/definitions/PlanCreateModel"
+      responses:
+        201:
+          description: Plan Response
+          schema:
+            $ref: "#/definitions/PlanModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /plans/{id}:
+    get:
+      summary: Get Plan
+      description: Returns a plan based on a single ID
+      operationId: findPlanbyID
+      tags:
+        - Plans
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of plan to fetch
+          type: string
+      responses:
+        200:
+          description: Plan response
+          schema:
+            $ref: "#/definitions/PlanModel"
+    put:
+      summary: Update plan
+      description: Update an existing plan using Put method
+      operationId: updatePlan
+      tags:
+        - Plans
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of plan to update
+          type: string
+        - name: plan
+          in: body
+          required: true
+          description: Plan to add to the system
+          schema:
+            $ref: "#/definitions/PlanUpdateModel"
+      responses:
+        200:
+          description: Plan updated
+          schema:
+            $ref: "#/definitions/PlanModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Update plan
+      description: Update an existing plan using Patch method
+      operationId: patchPlan
+      tags:
+        - Plans
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of plan to update
+          type: string
+        - name: plan
+          in: body
+          required: true
+          description: Plan to add to the system
+          schema:
+            $ref: "#/definitions/PlanUpdateModel"
+      responses:
+        200:
+          description: Plan updated
+          schema:
+            $ref: "#/definitions/PlanModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /purchases/:
+    get:
+      summary: Purchases list
+      description: Returns all the purchases of the system
+      tags:
+        - Purchases
+      operationId: listPurchases
+      responses:
+        200:
+          description: It is an array of Purchases
+          schema:
+            $ref: "#/definitions/PurchaseListModel"
+    post:
+      summary: Create purchase
+      description: Create a new purchase in the system
+      tags:
+        - Purchases
+      operationId: addPurchase
+      parameters:
+        - name: purchase
+          in: body
+          required: true
+          description: Purchase to add to the system
+          schema:
+            $ref: "#/definitions/PurchaseCreateModel"
+      responses:
+        201:
+          description: Purchase response
+          schema:
+            $ref: "#/definitions/PurchaseModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /purchases/{purchase_id}:
+    get:
+      summary: Purchase
+      description: Returns a single purchase of the system
+      tags:
+        - Purchases
+      operationId: findPurchasebyID
+      parameters:
+        - name: purchase_id
+          in: path
+          required: true
+          description: ID of purchase to fetch
+          type: integer
+      responses:
+        200:
+          description: It is a single Purchase
+          schema:
+            $ref: "#/definitions/PurchaseModel"
+  /references/:
+    get:
+      summary: References Types Dictionary
+      description: Returns a dictionary of all of the Reference Types
+      tags:
+        - References
+      operationId: listReferences
+      responses:
+        200:
+          description: A dictionary with a list of References
+          schema:
+            $ref: "#/definitions/ReferencesListModel"
+  /references/duration-types/:
+    get:
+      summary: Duration Types list
+      description: |
+        Returns all the duration types of the system.
+        Valid values - [ [FOREVER, Forever], [ONCE, Once], [REPEATING, Repeating] ]
+      tags:
+        - References
+      operationId: listDurationTypes
+      responses:
+        200:
+          description: It is an array of Duration Types
+          schema:
+            $ref: "#/definitions/DurationTypeListModel"
+  /references/recurrence-periods/:
+    get:
+      summary: Reference Recurrence period list
+      description: |
+        Returns all the recurrence periods of the system.
+        Valid values - [ [MONTHLY, Monthly], [QUARTERLY, Quarterly], [SEMI_ANNUALLY, Semi Annually], [ANNUALLY, Annually] ]
+      tags:
+        - References
+      operationId: listRecurrencePeriods
+      responses:
+        200:
+          description: It is an array of Reference Recurrence Periods
+          schema:
+            $ref: "#/definitions/RecurrencePeriodListModel"
+  /references/account-terms/:
+    get:
+      summary: Terms list
+      description: |
+        Returns all the terms of the system.
+        Valid values - [ [ON_RECEIPT, "On Receipt"], [NET_7, "Net 7"], [NET_15, "Net 15"], [NET_30, "Net 30"], [NET_45, "Net 45"], [NET_55, "Net 55"], [NET_60, "Net 60"] ]
+      tags:
+        - References
+      operationId: listTerms
+      responses:
+        200:
+          description: It is an array of Terms
+          schema:
+            $ref: "#/definitions/AccountTermListModel"
+  /references/product-names/:
+    get:
+      summary: List of available Income Accounts.
+      description: These are used as names for Plans, Add-ons, Metered Products and One Time Items and for the product_name for Adjustment Reasons.
+      tags:
+        - References
+      operationId: listProductNames
+      responses:
+        200:
+          description: It is an array of Product Names
+          schema:
+            $ref: "#/definitions/ProductNameListModel"
+  /references/currencies/:
+    get:
+      summary: List of available Currencies.
+      description:
+        Return all the currencies of the system.
+        Valid values - [[usd, usd]]
+      tags:
+        - References
+      operationId: listCurrencies
+      responses:
+        200:
+          description: It is an array of currencies
+          schema:
+            $ref: "#/definitions/CurrenciesListModel"
+  /references/countries/:
+    get:
+      summary: List of Countries.
+      description:
+        "Return `name` and 2-letter `code` for all countries as defined by the
+        [ISO 3166](http://www.iso.org/iso/home/standards/country_codes.htm) standard."
+      tags:
+        - References
+      operationId: listCountries
+      responses:
+        200:
+          description: It is an array of country objects.
+          schema:
+            $ref: "#/definitions/CountryListModel"
+  /references/countries/{country_code}/subdivisions/:
+    get:
+      summary: List of Subdivisions from a specific country.
+      parameters:
+         - name: country_code
+           in: path
+           required: true
+           description: 2-letter country code
+           type: string
+      description:
+        "Return `name` and `code` for all subdivisions.
+        [ISO 3166-2](http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=63546) standard."
+      tags:
+        - References
+      operationId: listSubdivisions
+      responses:
+        200:
+          description: It is an array of subdivisions objects.
+          schema:
+            $ref: "#/definitions/SubdivisionListModel"
+  /refunds/:
+    get:
+      summary: Refunds list
+      description: Returns all the refunds of the system
+      tags:
+        - Refunds
+      operationId: listRefunds
+      parameters:
+        - name: reconciled
+          in: query
+          type: boolean
+          required: false
+          description: "Determine whether to get only reconciled refunds or unreconciled refunds.
+          If the parameter is missing all refunds will be returned."
+        - name: expand
+          in: "query"
+          required: false
+          description: Expand is an optional parameter. It returns the full account object upon request. It should be used like this "/refunds/?expand[]=account"
+          type: string
+      responses:
+        200:
+          description: It is an array of Refunds
+          schema:
+            $ref: "#/definitions/RefundsListModel"
+    post:
+      summary: Create a refund
+      description: "Create a new refund in the system. This end-point supports three different refund schemas.
+      Litle refunds require litle_refund_id. Stripe refunds require stripe_refund_id.
+      Check refunds require check_number."
+      tags:
+        - Refunds
+      operationId: addRefund
+      parameters:
+        - name: refund
+          in: body
+          required: true
+          description: Refund to add to the system
+          schema:
+            $ref: "#/definitions/RefundCreateModel"
+      responses:
+        201:
+          description: Refund response
+          schema:
+            $ref: "#/definitions/RefundModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /refunds/{refund_id}:
+    get:
+      summary: Refund
+      description: Returns a single refund of the system
+      tags:
+        - Refunds
+      operationId: findRefundByID
+      parameters:
+        - name: refund_id
+          in: path
+          required: true
+          description: ID of refund to fetch
+          type: integer
+      responses:
+        200:
+          description: It is a single Refund
+          schema:
+            $ref: "#/definitions/RefundModel"
+    put:
+      summary: Update a refund
+      description: "Update non-reconciled refund in the system. This end-point supports three different refund schemas.
+      Litle refunds require litle_refund_id. Stripe refunds require stripe_refund_id.
+      Check refunds require check_number."
+      tags:
+        - Refunds
+      operationId: updateRefund
+      parameters:
+        - name: refund_id
+          in: path
+          required: true
+          description: ID of Refund to put
+          type: integer
+        - name: refund
+          in: body
+          required: true
+          description: Data to update
+          schema:
+            $ref: "#/definitions/RefundUpdateModel"
+      responses:
+        200:
+          description: Refund response
+          schema:
+            $ref: "#/definitions/RefundModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Partial Refund Update
+      description: "Update non-reconciled refund in the system. This end-point supports three different refund schemas.
+      Litle refunds require litle_refund_id. Stripe refunds require stripe_refund_id.
+      Check refunds require check_number."
+      tags:
+        - Refunds
+      operationId: patchRefund
+      parameters:
+        - name: refund_id
+          in: path
+          required: true
+          description: ID of Refund to patch
+          type: integer
+        - name: refund
+          in: body
+          required: true
+          description: Data to update
+          schema:
+            $ref: "#/definitions/RefundUpdateModel"
+      responses:
+        200:
+          description: Refund response
+          schema:
+            $ref: "#/definitions/RefundModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /reports/account-coupon-daily/:
+    get:
+      summary: Account coupons daily report
+      description: Return a s3 url of a daily report
+      tags:
+        - Reports
+      operationId: getAccountCouponDailyReport
+      responses:
+        200:
+          description: S3 url to coupons daily report
+  /reports/failed-payments/:
+    get:
+      summary: Failed payments report
+      description: Return a s3 url of a daily report
+      tags:
+        - Reports
+      operationId: getFailedPaymentReport
+      responses:
+        200:
+          description: S3 url to failed payments report
+  /subscriptions/:
+    get:
+      summary: Subscriptions list
+      description: Returns all the subscriptions of the system
+      tags:
+        - Subscriptions
+      operationId: listSubscriptions
+      responses:
+        200:
+          description: It is an array of Subscriptions
+          schema:
+            $ref: "#/definitions/SubscriptionListModel"
+    post:
+      summary: Create subscription
+      description: Create a new Subscription in the system
+      tags:
+        - Subscriptions
+      operationId: addSubscription
+      parameters:
+        - name: subscription
+          in: body
+          required: true
+          description: Subscription to add to the system with Add-ons
+          schema:
+            $ref: "#/definitions/SubscriptionCreateModel"
+      responses:
+        201:
+          description: Subscription response
+          schema:
+            $ref: "#/definitions/SubscriptionModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /subscriptions/{subscription_id}:
+    get:
+      summary: Subscription
+      description: Returns a single subscription of the system
+      tags:
+        - Subscriptions
+      operationId: findSubscriptionbyID
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          description: ID of subscription to fetch
+          type: integer
+        - name: expand
+          in: "query"
+          required: false
+          description: Expand is an optional parameter. It returns the full plan and addon(s) objects upon request. It should be used like this "/subscriptions/id?expand[]=plan&expand[]=addons"
+          type: string
+      responses:
+        200:
+          description: It is a single Subscription
+          schema:
+            $ref: "#/definitions/SubscriptionModel"
+    put:
+      summary: Update a subscription
+      description: Update a subscription
+      tags:
+        - Subscriptions
+      operationId: updateSubscription
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          description: ID of subscription to put
+          type: integer
+        - name: subscription
+          required: true
+          in: body
+          description: Data to update
+          schema:
+            $ref: "#/definitions/SubscriptionUpdateModel"
+      responses:
+        200:
+          description: Subscription response
+          schema:
+            $ref: "#/definitions/SubscriptionModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    patch:
+      summary: Partially update a subscription
+      description: Partially update a subscription
+      tags:
+        - Subscriptions
+      operationId: patchSubscription
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          description: ID of subscription to patch
+          type: integer
+        - name: subscription
+          required: true
+          in: body
+          description: Data to update
+          schema:
+            $ref: "#/definitions/SubscriptionUpdateModel"
+      responses:
+        200:
+          description: Subscription response
+          schema:
+            $ref: "#/definitions/SubscriptionModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+    delete:
+      summary: Cancel a subscription
+      description: Cancels the subscription
+      tags:
+        - Subscriptions
+      operationId: cancelSubscription
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          description: ID of subscription to delete
+          type: integer
+      responses:
+        204:
+          description: Successfully cancelled the subscription
+          produces:
+            - None
+        404:
+          description: Subscription not found.
+  /subscriptions/{subscription_id}/addons/:
+    post:
+      summary: Associate addons to an existing subscription
+      description: Associate addons to an existing subscription,
+                  a price may be provided if the addon accepts the price to be overridden.
+                  It also creates an invoice for this operation. In case of multiples addons being created,
+                  one invoice is generated with multiples invoice items, one per addon.
+      tags:
+        - Subscription Add-ons
+      operationId: addSubscriptionAddon
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          description: Id of the subscription to be associated with the addon
+          type: integer
+        - name: subscription_addon
+          in: body
+          description: It contains an addon id, and an optional price for the subscription addon to be created.
+          schema:
+            $ref: "#/definitions/SubscriptionAddonCreateModel"
+      responses:
+        201:
+          description: Subscription addon created.
+          schema:
+            $ref: "#/definitions/SubscriptionAddonModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /subscriptions/{subscription_id}/addons/{addon_id}:
+    delete:
+      summary: Remove addon from an existing subscription
+      description: Remove an addon linked to a subscription
+      tags:
+        - Subscription Add-ons
+      operationId: removeSubscriptionAddon
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          description: ID of subscription
+          type: integer
+        - name: addon_id
+          in: path
+          required: true
+          description: ID of addon
+          type: string
+      responses:
+        204:
+          description: Successfully removed addon from subscription.
+          produces:
+            - None
+        404:
+          description: SubscriptionAddon not found.
+  /system-balances/:
+    get:
+      summary:  Get the existing system balance errors
+      description:  Get the existing system balance errors
+      operationId: listSystemBalances
+      responses:
+        200:
+          description: Subscription response
+          schema:
+            $ref: "#/definitions/SystemBalanceListModel"
+  /system-balances/{account_id}/retries/:
+    post:
+      summary:  Recalulate the existing system balance for an account
+      description:  Recalulate the existing system balance for an account
+      operationId: retrySystemBalance
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          description: ID of account to recalulate system balance
+          type: integer
+      responses:
+        202:
+          description: System balance is being recalculated
+          schema:
+            $ref: "#/definitions/SystemBalanceModel"
+  /tax-calculations/:
+    post:
+      summary: Creates a tax calculation for an invoice
+      description: Calculates taxes for a given invoice
+      tags:
+        - Tax Calculation
+      operationId: createTaxCalculation
+      parameters:
+        - name: invoice
+          in: body
+          required: true
+          description: ID of invoice which taxes should be calculated
+          schema:
+            $ref: "#/definitions/TaxCalculationCreateModel"
+      responses:
+        202:
+          description: Tax calculation started response
+          schema:
+            $ref: "#/definitions/TaxCalculationModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+  /tax-calculations/{tax_calculation_id}:
+    get:
+      summary: Retrieves a tax calculation
+      description: Retrieves a tax calculation for an invoice
+      tags:
+        - Tax Calculation
+      operationId: retrievesTaxCalculation
+      parameters:
+        - name: tax_calculation_id
+          in: path
+          required: true
+          description: ID of tax calculation
+          type: integer
+      responses:
+        200:
+          description: Successfully retrieved tax calculation for invoice.
+          schema:
+            $ref: "#/definitions/TaxCalculationModel"
+        404:
+          description: Tax Calculation not found.
+  /usage-events/:
+    post:
+      summary: Creates an entry of a usage event
+      description: Registers a usage event for a given metered product, such as a CDN or exceeded bandwith usage.
+      tags:
+        - Usage Events
+      operationId: addUsageEvent
+      parameters:
+        - name: usageEvent
+          in: body
+          required: true
+          description: Usage event entry to be registered
+          schema:
+            $ref: "#/definitions/UsageEventCreateModel"
+      responses:
+        201:
+          description: Usage event registration response
+          schema:
+            $ref: "#/definitions/UsageEventModel"
+        400:
+          description: Bad request
+          schema:
+            $ref: "#/definitions/ErrorListModel"
+definitions:
+  AccountListModel:
+    type: object
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      previous:
+        type: [string, "null"]
+      next:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/AccountModel"
+  AccountCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account_id
+      - account_name
+      - terms
+      - contacts
+    properties:
+      account_id:
+        type: integer
+      account_name:
+        type: string
+      terms:
+        type: string
+        enum:
+          - ON_RECEIPT
+          - NET_7
+          - NET_15
+          - NET_30
+          - NET_45
+          - NET_55
+          - NET_60
+      cc_token:
+        type: [string, "null"]
+      stripe_id:
+        type: string
+      contacts:
+        type: array
+        items:
+          $ref: "#/definitions/ContactCreateModel"
+      address_line1:
+        type: string
+      address_line2:
+        type: string
+      address_city:
+        type: string
+      address_state:
+        type: string
+      address_zip:
+        type: string
+      address_country:
+        type: string
+      balance:
+        type: string
+        maxLength: 9
+      po_number:
+        type: [string, "null"]
+        maxLength: 100
+      tax_exempt_id:
+        type: [string, "null"]
+        maxLength: 100
+      active:
+        type: boolean
+        defaultValue: true
+  AccountUpdateModel:
+    type: object
+    required:
+      - account_id
+    properties:
+      account_id:
+        type: integer
+      terms:
+        type: string
+        enum:
+          - ON_RECEIPT
+          - NET_7
+          - NET_15
+          - NET_30
+          - NET_45
+          - NET_55
+          - NET_60
+      cc_token:
+        type: [string, "null"]
+      address_line1:
+        type: string
+      address_line2:
+        type: string
+      address_city:
+        type: string
+      address_state:
+        type: string
+      address_zip:
+        type: string
+      address_country:
+        type: string
+      po_number:
+        type: string
+        maxLength: 100
+      tax_exempt_id:
+        type: string
+        maxLength: 100
+      active:
+        type: boolean
+        defaultValue: true
+  AccountModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account_id
+      - account_name
+      - terms
+      - balance
+      - active
+    properties:
+      account_id:
+        type: integer
+      account_name:
+        type: string
+      terms:
+        type: string
+        enum:
+          - ON_RECEIPT
+          - NET_7
+          - NET_15
+          - NET_30
+          - NET_45
+          - NET_55
+          - NET_60
+      balance:
+        type: string
+        maxLength: 9
+      cc_token:
+        type: [string, "null"]
+      contacts:
+        type: array
+        items:
+          $ref: "#/definitions/ContactModel"
+      address_line1:
+        type: string
+      address_line2:
+        type: string
+      address_city:
+        type: string
+      address_state:
+        type: string
+      address_zip:
+        type: string
+      address_country:
+        type: string
+      cc_last4:
+        type: [string, "null"]
+      cc_brand:
+        type: [string, "null"]
+      cc_exp_month:
+        type: [integer, "null"]
+      cc_exp_year:
+        type: [integer, "null"]
+      cc_cardholder:
+        type: [string, "null"]
+        maxLength: 40
+      po_number:
+        type: [string, "null"]
+        maxLength: 100
+      tax_exempt_id:
+        type: [string, "null"]
+        maxLength: 100
+      active:
+        type: boolean
+        defaultValue: true
+      started_on:
+        type: string
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  AddonListModel:
+    type: object
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/AddonModel"
+  AddonCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - addon_id
+      - name
+      - description
+      - price
+      - plan
+      - currency
+      - income_account
+    properties:
+      addon_id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      plan:
+        type: string
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+        defaultValue: true
+      price_overridable:
+        type: boolean
+      active:
+        type: boolean
+        defaultValue: true
+      refundable:
+        type: boolean
+        defaultValue: true
+      income_account:
+        type: string
+  AddonModel:
+    type: object
+    additionalProperties: false
+    required:
+      - addon_id
+      - name
+      - description
+      - price
+      - plan
+      - currency
+      - price_overridable
+      - active
+      - refundable
+    properties:
+      addon_id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      plan:
+        type: string
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+        defaultValue: true
+      price_overridable:
+        type: boolean
+      active:
+        type: boolean
+        defaultValue: true
+      refundable:
+        type: boolean
+        defaultValue: true
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  AddonUpdateModel:
+    type: object
+    required:
+      - addon_id
+    properties:
+      addon_id:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  AddonPatchModel:
+    type: object
+    properties:
+      addon_id:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  AdjustmentReasonListModel:
+    type: object
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/AdjustmentReasonModel"
+  AdjustmentReasonModel:
+    type: object
+    additionalProperties: false
+    required:
+      - adjustment_reason_id
+      - name
+      - description
+      - active
+    properties:
+      adjustment_reason_id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      active:
+        type: boolean
+        defaultValue: true
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  AdjustmentReasonCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - adjustment_reason_id
+      - name
+      - description
+      - active
+      - product_name
+      - income_account
+    properties:
+      adjustment_reason_id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      active:
+        type: boolean
+        defaultValue: true
+      product_name:
+        type: string
+        enum:
+          - Personal
+          - Credit
+          - Bad Debit
+          - Distributed Sites
+      income_account:
+        type: string
+  AdjustmentReasonUpdateModel:
+    type: object
+    required:
+      - adjustment_reason_id
+      - name
+      - description
+      - active
+    properties:
+      adjustment_reason_id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  AdjustmentReasonPatchModel:
+    type: object
+    properties:
+      adjustment_reason_id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  CreditCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - adjustment_reason
+      - account
+      - amount
+      - description
+    properties:
+      adjustment_reason:
+        type: string
+      account:
+        type: integer
+      amount:
+        type: string
+      description:
+        type: string
+      invoice:
+        type: integer
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+  CreditModel:
+    type: object
+    additionalProperties: false
+    required:
+      - adjustment_reason
+      - account
+      - amount
+      - description
+    properties:
+      id:
+        type: integer
+      adjustment_reason:
+        type: string
+      account:
+        type: integer
+      amount:
+        type: string
+      description:
+        type: string
+      invoice:
+        type: integer
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  CouponListModel:
+    type: object
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/CouponModel"
+  ContactCreateModel:
+    type: object
+    required:
+      - email
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      company:
+        type: string
+  ContactModel:
+    type: object
+    required:
+      - email
+    properties:
+      id:
+        type: integer
+      first_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      company:
+        type: string
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  CouponCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - coupon_id
+      - description
+      - duration
+      - allowed_plans
+    properties:
+      coupon_id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+        enum:
+          - FOREVER
+          - ONCE
+          - REPEATING
+      duration_in_months:
+        type: integer
+      percent_off:
+        type: integer
+      amount_off:
+        type: number
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      max_redemptions:
+        type: integer
+      expiration:
+        type: string
+      origination:
+        type: string
+      allowed_plans:
+        type: array
+        items:
+          type: string
+      active:
+        type: boolean
+        defaultValue: true
+      notes:
+        type: string
+  CouponModel:
+    type: object
+    additionalProperties: false
+    properties:
+      coupon_id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+        enum:
+          - FOREVER
+          - ONCE
+          - REPEATING
+      duration_in_months:
+        type: [integer, "null"]
+      percent_off:
+        type: [integer, "null"]
+      amount_off:
+        type: [string, "null"]
+        maxLength: 9
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      max_redemptions:
+        type: [integer, "null"]
+      expiration:
+        type: [string, "null"]
+      origination:
+        type: [string, "null"]
+      allowed_plans:
+        type: array
+        items:
+          type: string
+      active:
+        type: boolean
+        defaultValue: true
+      notes:
+        type: string
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  ReferencesListModel:
+    required:
+      - duration-types
+      - product-names
+      - account-terms
+      - recurrence-periods
+      - countries
+    properties:
+      currencies:
+        $ref: "#/definitions/CurrenciesListModel"
+      duration-types:
+        $ref: "#/definitions/DurationTypeListModel"
+      product-names:
+        $ref: "#/definitions/ProductNameListModel"
+      account-terms:
+        $ref: "#/definitions/AccountTermListModel"
+      recurrence-periods:
+        $ref: "#/definitions/RecurrencePeriodListModel"
+      countries:
+        $ref: "#/definitions/CountryListModel"
+  CurrenciesListModel:
+    type: array
+    items:
+      type: array
+      maxItems: 2
+      items:
+        type: string
+  ProductNameListModel:
+    type: array
+    items:
+      type: array
+      maxItems: 2
+      items:
+        type: string
+  DurationTypeListModel:
+    type: array
+    items:
+      type: array
+      maxItems: 2
+      items:
+        type: string
+        enum:
+          - FOREVER
+          - Forever
+          - ONCE
+          - Once
+          - REPEATING
+          - Repeating
+  AccountTermListModel:
+    type: array
+    items:
+      type: array
+      maxItems: 2
+      items:
+        type: string
+        enum:
+          - ON_RECEIPT
+          - On Receipt
+          - NET_7
+          - Net 7
+          - NET_15
+          - Net 15
+          - NET_30
+          - Net 30
+          - NET_45
+          - Net 45
+          - NET_55
+          - Net 55
+          - NET_60
+          - Net 60
+  RecurrencePeriodListModel:
+    type: array
+    items:
+      type: array
+      maxItems: 2
+      items:
+        type: string
+        enum:
+          - MONTHLY
+          - Monthly
+          - QUARTERLY
+          - Quarterly
+          - SEMI_ANNUALLY
+          - Semi Annually
+          - ANNUALLY
+          - Annually
+  CountryListModel:
+    type: array
+    items:
+      $ref: '#/definitions/CountryModel'
+  CountryModel:
+    type: object
+    required:
+      - code
+      - name
+    properties:
+      code:
+        type: string
+        maxLength: 2
+      name:
+        type: string
+  SubdivisionListModel:
+    type: array
+    items:
+      $ref: '#/definitions/SubdivisionModel'
+  SubdivisionModel:
+    type: object
+    required:
+      - code
+      - name
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+  CurrenciesListModel:
+    type: array
+    items:
+      type: array
+      maxItems: 2
+      items:
+        type: string
+        enum:
+          - usd
+  MeteredProductListModel:
+    type: object
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/MeteredProductModel"
+  MeteredProductCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - metered_product_id
+      - name
+      - active
+      - income_account
+    properties:
+      metered_product_id:
+        type: string
+      name:
+        type: string
+        maxLength: 25
+      active:
+        type: boolean
+        defaultValue: true
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      income_account:
+        type: string
+  MeteredProductUpdateModel:
+    type: object
+    required:
+      - metered_product_id
+      - active
+    properties:
+      metered_product_id:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  MeteredProductModel:
+    type: object
+    additionalProperties: false
+    required:
+      - metered_product_id
+      - name
+      - active
+    properties:
+      metered_product_id:
+        type: string
+      name:
+        type: string
+        maxLength: 25
+      active:
+        type: boolean
+        defaultValue: true
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  MigrationIssueListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/MigrationIssueModel"
+  MigrationListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/MigrationModel"
+  MigrationCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - subscription
+      - next_bill_date
+    properties:
+      id:
+        type: integer
+      subscription:
+        $ref: "#/definitions/SubscriptionCreateModel"
+      next_bill_date:
+        type: string
+        format: date
+      coupon_months_remaining:
+        type: [integer, "null"]
+        minimum: 1
+        maximum: 120
+  MigrationModel:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - url
+      - subscription
+      - phases
+      - next_bill_date
+      - completed
+      - created_on
+      - updated_on
+    properties:
+      id:
+        type: integer
+      url:
+        type: string
+      subscription:
+        $ref: "#/definitions/SubscriptionMigrationModel"
+      phases:
+        type: array
+        items:
+          $ref: "#/definitions/MigrationPhaseModel"
+      next_bill_date:
+        type: string
+        format: date
+      coupon_months_remaining:
+        type: [integer, "null"]
+      completed:
+        type: boolean
+      created_on:
+        type: string
+        format: date-time
+      updated_on:
+        type: string
+        format: date-time
+  MigrationIssueModel:
+    type: object
+    properties:
+      id:
+        type: integer
+      phase:
+        type: integer
+      severity:
+        type: string
+      type:
+        type: string
+      info:
+        type: string
+      created_on:
+        type: string
+        format: date-time
+  MigrationPhaseModel:
+    type: object
+    required:
+     - task_id
+     - name
+     - status
+    properties:
+      task_id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+        enum:
+         - PENDING
+         - RUNNING
+         - SUCCESS
+         - FAILURE
+  PlanListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/PlanModel"
+  PlanCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - plan_id
+      - name
+      - description
+      - price
+      - level
+      - recurrence
+      - income_account
+    properties:
+      plan_id:
+        type: string
+      name:
+        type: string
+        maxLength: 100
+      description:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      level:
+        type: integer
+      recurrence:
+        type: string
+        enum:
+          - MONTHLY
+          - QUARTERLY
+          - SEMI_ANNUALLY
+          - ANNUALLY
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      price_overridable:
+        type: boolean
+      active:
+        type: boolean
+        defaultValue: true
+      refundable:
+        type: boolean
+        defaultValue: true
+      income_account:
+        type: string
+  PlanUpdateModel:
+    type: object
+    required:
+      - plan_id
+      - description
+      - active
+    properties:
+      plan_id:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  PlanModel:
+    type: object
+    additionalProperties: false
+    required:
+      - plan_id
+      - name
+      - description
+      - price
+      - level
+      - recurrence
+      - currency
+      - price_overridable
+      - active
+      - refundable
+    properties:
+      plan_id:
+        type: string
+      name:
+        type: string
+        maxLength: 100
+      description:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      level:
+        type: integer
+      recurrence:
+        type: string
+        enum:
+          - MONTHLY
+          - QUARTERLY
+          - SEMI_ANNUALLY
+          - ANNUALLY
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      price_overridable:
+        type: boolean
+      active:
+        type: boolean
+        defaultValue: true
+      refundable:
+        type: boolean
+        defaultValue: true
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  OneTimeItemListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/OneTimeItemModel"
+  OneTimeItemCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - one_time_item_id
+      - name
+      - description
+      - price
+      - currency
+      - income_account
+    properties:
+      one_time_item_id:
+        type: string
+      name:
+        type: string
+        maxLength: 100
+      description:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      active:
+        type: boolean
+        defaultValue: true
+      price_overridable:
+        type: boolean
+      refundable:
+        type: boolean
+        defaultValue: true
+      income_account:
+        type: string
+  OneTimeItemUpdateModel:
+    type: object
+    required:
+      - one_time_item_id
+      - description
+    properties:
+      one_time_item_id:
+        type: string
+      description:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  OneTimeItemModel:
+    type: object
+    additionalProperties: false
+    required:
+      - one_time_item_id
+      - name
+      - description
+      - price
+      - currency
+      - active
+      - price_overridable
+      - refundable
+    properties:
+      one_time_item_id:
+        type: string
+      name:
+        type: string
+        maxLength: 100
+      description:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      active:
+        type: boolean
+        defaultValue: true
+      price_overridable:
+        type: boolean
+      refundable:
+        type: boolean
+        defaultValue: true
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  RefundsListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/RefundModel"
+  RefundCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - payment
+      - amount
+      - description
+      - account
+      - reconciled_on
+    properties:
+      payment:
+        type: integer
+      amount:
+        type: string
+        maxLength: 10
+      description:
+        type: string
+      account:
+        type: integer
+      stripe_refund_id:
+        type: string
+        maxLength: 100
+      check_number:
+        type: string
+        maxLength: 100
+      litle_refund_id:
+        type: string
+        maxLength: 256
+      reconciled_on:
+        type: string
+  RefundUpdateModel:
+    type: object
+    required:
+      - reconciled_on
+    properties:
+      amount:
+        type: string
+        maxLength: 10
+      description:
+        type: string
+      account:
+        type: integer
+      stripe_refund_id:
+        type: string
+        maxLength: 100
+      check_number:
+        type: string
+        maxLength: 100
+      litle_refund_id:
+        type: string
+        maxLength: 256
+      reconciled_on:
+        type: string
+  RefundModel:
+    type: object
+    additionalProperties: false
+    required:
+      - amount
+      - description
+    properties:
+      id:
+        type: integer
+      invoice:
+        type: [integer, "null"]
+      account:
+        type: [integer, "null"]
+      amount:
+        type: string
+        maxLength: 10
+      description:
+        type: string
+      stripe_refund_id:
+        type: string
+        maxLength: 100
+      check_number:
+        type: string
+        maxLength: 100
+      litle_refund_id:
+        type: string
+        maxLength: 256
+      reconciled_on:
+        type: [string, "null"]
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  RefundListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/RefundModel"
+  SubscriptionListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/SubscriptionModel"
+  SubscriptionCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account
+      - plan
+    properties:
+      account:
+        type: integer
+      plan:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+        description: Only applicable if the Plan allows a Price Override
+      coupon:
+        type: string
+      addons:
+        type: array
+        items:
+          $ref: "#/definitions/SubscriptionAddonCreateModel"
+      active:
+        type: boolean
+      started_on:
+        type: string
+        description: "Need during migration, don't need to set it"
+  SubscriptionUpdateModel:
+    type: object
+    required:
+      - plan
+      - active
+    properties:
+      subscription_id:
+        type: integer
+      plan:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+        description: Only applicable if the Plan allows a Price Override
+      prorate:
+        type: boolean
+        defaultValue: true
+        description: Applicable if only the price is updated
+      addons:
+        type: array
+        items:
+          $ref: "#/definitions/SubscriptionAddonCreateModel"
+  SubscriptionModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account
+      - plan
+      - price
+      - total_price
+      - active
+      - started_on
+      - period_start
+      - period_end
+    properties:
+      subscription_id:
+        type: integer
+      account:
+        type: integer
+      plan:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      total_price:
+        type: string
+        maxLength: 10
+        description: "Sums up Plan and Addon prices"
+      coupon:
+        type: [string, "null"]
+      addons:
+        type: array
+        items:
+          $ref: "#/definitions/SubscriptionAddonModel"
+      started_on:
+        type: string
+      created_on:
+        type: string
+      ended_on:
+        type: [string, "null"]
+      period_start:
+        type: [string, "null"]
+      period_end:
+        type: [string, "null"]
+      mrr:
+        type: string
+        length: 10
+      updated_on:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  SubscriptionMigrationModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account
+      - plan
+      - price
+      - total_price
+      - active
+      - started_on
+    properties:
+      subscription_id:
+        type: integer
+      account:
+        type: integer
+      plan:
+        type: string
+      price:
+        type: string
+        maxLength: 10
+      total_price:
+        type: string
+        maxLength: 10
+        description: "Sums up Plan and Addon prices"
+      coupon:
+        type: [string, "null"]
+      addons:
+        type: array
+        items:
+          $ref: "#/definitions/SubscriptionAddonModel"
+      started_on:
+        type: string
+      created_on:
+        type: string
+      ended_on:
+        type: [string, "null"]
+      period_start:
+        type: [string, "null"]
+      period_end:
+        type: [string, "null"]
+      mrr:
+        type: string
+        length: 10
+      updated_on:
+        type: string
+      active:
+        type: boolean
+        defaultValue: true
+  SubscriptionAddonCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - addon
+    properties:
+      addon:
+        type: string
+      price:
+        type: number
+  SubscriptionAddonModel:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - addon
+      - price
+      - subscription
+      - created_on
+      - updated_on
+    properties:
+      id:
+        type: integer
+      addon:
+        type: string
+      price:
+        type: string
+      subscription:
+        type: integer
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  PurchaseListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/PurchaseModel"
+  PurchaseCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account
+      - one_time_item
+    properties:
+      account:
+        type: integer
+      one_time_item:
+        type: string
+      amount:
+        type: string
+        maxLength: 10
+        description: Only applicable if the One Time Item allows a Price Override
+  PurchaseModel:
+    additionalProperties: false
+    type: object
+    required:
+      - account
+      - one_time_item
+    properties:
+      id:
+        type: integer
+      account:
+        type: integer
+      one_time_item:
+        type: string
+      amount:
+        type: string
+        maxLength: 10
+      tax:
+        type: [string, "null"]
+        maxLength: 10
+      invoice:
+        type: [string, "null"]
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  InvoiceItemModel:
+    type: object
+    additionalProperties: false
+    required:
+      - product_type
+      - product_id
+      - description
+      - item_price
+      - subtotal
+    properties:
+      id:
+        type: integer
+      product_type:
+        type: integer
+      product_id:
+        type: string
+      description:
+        type: string
+      item_price:
+        type: string
+        maxlength: 9
+      subtotal:
+        type: string
+        maxlength: 9
+      tax:
+        type: [string, "null"]
+      applied_coupon:
+        type: [string, "null"]
+      created_on:
+        type: string
+      updated_on:
+        type: string
+      period_start:
+        type: [string, "null"]
+      period_end:
+        type: [string, "null"]
+      stripe_invoice_item_id:
+        type: [string, "null"]
+      netsuite_previous_rev_rec_schedule:
+        type: [string, "null"]
+  InvoiceListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/InvoiceListEntryModel"
+  InvoiceListWithInvoiceItemsModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/InvoiceModel"
+  InvoiceListEntryModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account
+      - due_on
+      - balance
+      - total
+    properties:
+      id:
+        type: integer
+      account:
+        type: integer
+      subscription:
+        type: [integer, "null"]
+      invoiced_on:
+        type: string
+        format: date
+      due_on:
+        type: string
+        format: date
+      internal:
+        type: boolean
+      for_refund:
+        type: boolean
+      closed_on:
+        type: [string, "null"]
+      balance:
+        type: string
+      total:
+        type: string
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      invoice_number:
+        type: [string, "null"]
+      pdf:
+        type: array
+        items:
+          type: string
+      failed_payments:
+        type: array
+        items:
+          type: integer
+      created_on:
+        type: string
+        format: date-time
+      updated_on:
+        type: string
+        format: date-time
+      avalara_doc_id:
+        type: [string, "null"]
+      credit_memo_number:
+        type: [string, "null"]
+        maxLength: 100
+      tax_recalculation_for_invoice:
+        type: [integer, "null"]
+  InvoiceModel:
+    type: object
+    additionalProperties: false
+    required:
+      - account
+      - invoiced_on
+      - due_on
+      - balance
+      - subtotal
+      - tax
+      - total
+    properties:
+      id:
+        type: integer
+      account:
+        type: integer
+      subscription:
+        type: [integer, "null"]
+      invoiced_on:
+        type: string
+        format: date
+      due_on:
+        type: string
+        format: date
+      internal:
+        type: boolean
+      for_refund:
+        type: boolean
+      closed_on:
+        type: [string, "null"]
+      balance:
+        type: string
+      subtotal:
+        type: string
+      tax:
+        type: string
+      total:
+        type: string
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      invoice_number:
+        type: [string, "null"]
+      credit_memo_number:
+        type: [string, "null"]
+      pdf:
+        type: array
+        items:
+          type: string
+      created_on:
+        type: string
+        format: date-time
+      updated_on:
+        type: string
+        format: date-time
+      payments:
+        type: array
+        items:
+          type: integer
+      failed_payments:
+        type: array
+        items:
+          type: integer
+      refunds:
+        type: array
+        items:
+          type: integer
+      credits:
+        type: array
+        items:
+          type: integer
+      tax_calculations:
+        type: array
+        items:
+          type: integer
+      tax_recalculation_for_invoice:
+        type: [integer, "null"]
+      avalara_doc_id:
+        type: [string, "null"]
+      invoice_items:
+        type: array
+        items:
+          $ref: "#/definitions/InvoiceItemModel"
+  DebitModel:
+    type: object
+    additionalProperties: false
+    required:
+      - adjustment_reason
+      - account
+      - amount
+      - description
+    properties:
+      id:
+        type: integer
+      adjustment_reason:
+        type: string
+      account:
+        type: integer
+      amount:
+        type: string
+        maxLength: 10
+      description:
+        type: string
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  PaymentModel:
+    type: object
+    additionalProperties: false
+    required:
+      - invoice
+    properties:
+      id:
+        type: integer
+      invoice:
+        type: integer
+      amount:
+        type: string
+        maxLength: 10
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      check_number:
+        type: [string, "null"]
+        maxLength: 100
+      wire_number:
+        type: [string, "null"]
+        maxLength: 100
+      bank_fee:
+        type: [string, "null"]
+        maxLength: 10
+      stripe_charge_id:
+        type: string
+        maxLength: 27
+      cc_last4:
+        type: string
+        maxLength: 4
+      cc_brand:
+        type: string
+        maxLength: 100
+      applied_on:
+        type: string
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  PaymentGetModel:
+    type: object
+    additionalProperties: false
+    properties:
+      account:
+        type: [integer, "null"]
+      id:
+        type: integer
+      invoice:
+        type: integer
+      amount:
+        type: string
+        maxLength: 10
+      applied_amount:
+        type: string
+        maxLength: 10
+      chargebacks:
+        type: array
+        items:
+          $ref: "#/definitions/Chargeback"
+      currency:
+        type: string
+        maxLength: 3
+        enum:
+          - usd
+      check_number:
+        type: [string, "null"]
+        maxLength: 100
+      wire_number:
+        type: [string, "null"]
+        maxLength: 100
+      bank_fee:
+        type: [string, "null"]
+        maxLength: 10
+      stripe_charge_id:
+        type: [string, "null"]
+        maxLength: 27
+      cc_last4:
+        type: [string, "null"]
+        maxLength: 4
+      cc_brand:
+        type: [string, "null"]
+        maxLength: 100
+      applied_on:
+        type: string
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  PaymentListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/PaymentGetModel"
+  SystemBalanceListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/SystemBalanceModel"
+  SystemBalanceModel:
+    type: object
+    additionProperties: false
+    required:
+      - account
+      - account_balance
+      - stripe_balance
+      - netsuite_balance
+      - created_on
+      - updated_on
+    properties:
+      account:
+        type: integer
+      account_balance:
+        type:  string
+      stripe_balance:
+        type: string
+      netsuite_balance:
+        type: string
+      created_on:
+        type: string
+        format: date-time
+      updated_on:
+        type: string
+        format: date-time
+  UsageEventCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - subscription
+      - metered_product
+      - rate
+      - quantity
+      - description
+    properties:
+      subscription:
+        type: integer
+      metered_product:
+        type: string
+      rate:
+        type: string
+        maxLength: 10
+      quantity:
+        type: string
+        maxLength: 20
+      description:
+        type: string
+        maxLength: 250
+  UsageEventListModel:
+    type: object
+    additionalProperties: false
+    required:
+      - count
+      - results
+    properties:
+      count:
+        type: integer
+      next:
+        type: [string, "null"]
+      previous:
+        type: [string, "null"]
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/UsageEventModel"
+  UsageEventModel:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - subscription
+      - metered_product
+      - rate
+      - quantity
+      - description
+    properties:
+      id:
+        type: integer
+      subscription:
+        type: integer
+      metered_product:
+        type: string
+      invoice:
+        type: [integer, "null"]
+      rate:
+        type: string
+        maxLength: 10
+      quantity:
+        type: string
+        maxLength: 20
+      description:
+        type: string
+        maxLength: 250
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  RefundCreateModel:
+    type: object
+    additionalProperties: false
+    required:
+      - amount
+      - description
+      - account
+      - reconciled_on
+    properties:
+      amount:
+        type: string
+        maxLength: 10
+      description:
+        type: string
+      account:
+        type: integer
+      stripe_refund_id:
+        type: string
+        maxLength: 100
+      check_number:
+        type: string
+        maxLength: 100
+      litle_refund_id:
+        type: string
+        maxLength: 256
+      reconciled_on:
+        type: string
+  ErrorListModel:
+    type: object
+    required:
+      - errors
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/ErrorModel"
+  ErrorModel:
+    type: object
+    required:
+      - field
+      - code
+      - message
+    properties:
+      field:
+        type: string
+      code:
+        type: string
+      message:
+        type: string
+  Chargeback:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - account
+      - payment
+      - amount
+      - currency
+    properties:
+      id:
+        type: integer
+      account:
+        type: integer
+      payment:
+        type: string
+      amount:
+        type: integer
+      currency:
+        type: string
+        maxLength: 3
+      chargeback_number:
+        type: string
+        maxLength: 3
+      reversal_number:
+        type: string
+        maxLength: 3
+      created_on:
+        type: string
+      updated_on:
+        type: string
+  TaxCalculationCreateModel:
+    type: object
+    required:
+      - invoice
+    properties:
+      invoice:
+        type: integer
+  TaxCalculationModel:
+    type: object
+    required:
+      - invoice
+      - status
+    properties:
+      invoice:
+        type: integer
+      generated_invoice:
+        type: [integer, "null"]
+      status:
+        type: string

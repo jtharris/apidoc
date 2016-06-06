@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <div class="container intro">
+
+    <h1>Add a new API</h1>
+
+    <form>
+      <label for="swagger-url">Swagger URL:</label>
+      <input id="swagger-url" type="url" name="url" />
+
+      <label for="app-name-input">API Name:</label>
+      <input id="app-name-input" type="text" name="app-name" />
+    </form>
+
+    {# TODO:  Add embeded preview ? #}
+  </div>
+
+{% endblock %}
