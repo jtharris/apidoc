@@ -1,6 +1,9 @@
 ---
 - hosts: all
   tasks:
+    - name: Set up apt-key for mongo
+      apt_key: keyserver=keyserver.ubuntu.com id=EA312927
+
     - name: Set up apt repos
       apt_repository: repo='{{ item }}' state=present
       with_items:
@@ -8,6 +11,7 @@
         - deb http://archive.ubuntu.com/ubuntu trusty-security main
         - deb http://archive.ubuntu.com/ubuntu trusty-updates main
         - deb http://archive.ubuntu.com/ubuntu trusty universe
+        - deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse
 
     - name: Upgrade the OS
       apt: upgrade=yes update_cache=yes
@@ -15,13 +19,11 @@
     - name: Install extra packages
       apt: name={{ item }} state=latest
       with_items:
-        - postgresql-server-dev-9.3
-        - postgresql
         - python
         - python-dev
         - python3-dev
         - python3-pip
-        - mongodb
+        - mongodb-org
 
     - name: Remove Python 2 virtualenv
       apt: name=python-virtualenv state=absent
