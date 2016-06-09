@@ -1,22 +1,16 @@
-from mongoengine import Document, StringField, DictField, URLField
+from mongoengine import Document, StringField, URLField
 
 
 class AppSpec(Document):
     app_name = StringField(required=True, unique=True)
     source = URLField(required=True)
-    spec = DictField(required=True)
+
+    # The initial approach was to make this a DictField to
+    # allow searching, but there turned out to be too much
+    # special casing to convert swagger into something that
+    # mongodb accepts as a document.  Punting for now - but
+    # we could introduce a mapping function to convert swagger
+    # into something mongo can work with.
+    spec = StringField(required=True)
 
     meta = {'indexes': ['app_name']}
-
-
-# TODO:  Have this be a model hook?
-def sanitize(spec):
-    if '$ref' in spec:
-        spec['{ref}'] = spec['$ref']
-        del spec['$ref']
-
-    for key, val in spec.items():
-        if isinstance(val, dict):
-            spec[key] = sanitize(val)
-
-    return spec

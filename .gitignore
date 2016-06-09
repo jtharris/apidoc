@@ -62,3 +62,4 @@ Status API Training Shop Blog About Pricing
 env
 
 .vagrant/
+.idea/

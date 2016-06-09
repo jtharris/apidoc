@@ -2,14 +2,18 @@ import os
 from flask import Flask
 from mongoengine import connect
 
-CONFIG_OBJ = os.environ.get('ENV_CONFIG', 'dev').capitalize() + 'Config'
 
-app = Flask(__name__)
-app.config.from_object('config.{}'.format(CONFIG_OBJ))
+def create_app(init_db=True):
+    config_obj = os.environ.get('ENV_CONFIG', 'dev').capitalize() + 'Config'
 
-# TODO:  Skip connection for unit tests...
-connect(host=app.config.get('MONGODB_URL'))
+    app = Flask(__name__)
+    app.config.from_object('app.config.{}'.format(config_obj))
 
-# TODO:  Set up defaults for 404, 500 pages
+    if init_db:
+        connect(host=app.config.get('MONGODB_URL'))
 
-from . import views
+    from app.views import api_doc
+    app.register_blueprint(api_doc)
+
+    # TODO:  Set up defaults for 404, 500 pages
+    return app

@@ -6,15 +6,14 @@
     <h1>Add a new API</h1>
 
     <form method="post">
-      <div>
-        <label for="swagger-url">Swagger URL:</label>
-        <input id="swagger-url" type="source" name="source" />
-      </div>
-
-      <div>
-        <label for="app-name-input">API Name:</label>
-        <input id="app-name-input" type="text" name="app-name" />
-      </div>
+      <table>
+        {% for field in form %}
+        <tr>
+          <th>{{ field.label }}</th>
+          <td>{{ field }}</td>
+        </tr>
+        {% endfor %}
+      </table>
 
       <input type="submit" value="Create API Doc" />
     </form>
