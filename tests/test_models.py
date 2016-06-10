@@ -23,12 +23,7 @@ class AppSpecTest(BaseTest):
         self.assertEqual('{"foo": "bar"}', actual_spec.spec)
 
     def test_spec_can_be_persisted(self):
-        pet_store_path = os.path.join(os.path.dirname(__file__), 'data', 'petstore.yaml')
-
-        with open(pet_store_path) as stream:
-            pet_store_spec = yaml.load(stream)
-
-        spec_text = json.dumps(pet_store_spec)
+        spec_text = json.dumps(self.sample_swagger_spec())
 
         AppSpec(
             app_name='petstore',

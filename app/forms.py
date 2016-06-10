@@ -8,8 +8,17 @@ class ApiSpecForm(Form):
     source = StringField(validators=[validators.url()])
 
     def validate_source(self, field):
-        response = requests.get(field)
+        response = requests.get(field.data)
 
         if not response.ok:
-            raise ValidationError('The URL did not respond with 200 OK')
+            raise ValidationError('{} responded with status:  {}.'.format(
+                response.url,
+                response.status_code)
+            )
+
+        try:
+            swagger_def = response.json()
+        except ValueError:
+            raise ValidationError('Response did not return valid JSON.')
+
 
